@@ -55,8 +55,10 @@ def main():
 
         print 'Mission runner got pose'
         for mission in mission_list:
-            yield mission.run(sub).addErrback(catch_error)
-            yield txros.util.wall_sleep(1.0)  # Seems to make things behave more nicely
+            yield txros.util.wrap_timeout(mission.run(sub), 2).addErrback(catch_error)
+
+        # Throws the same error
+        yield txros.util.wall_sleep(1.0)  # Seems to make things behave more nicely
 
     except Exception:
         traceback.print_exc()
@@ -67,6 +69,10 @@ def main():
 
 
 def catch_error(error):
+    if error.check(txros.util.TimeoutError):
+        print "TIMEOUT"
+        return
+
     print 'tx traceback'
     print '>------------------------------<'
     print error.printTraceback()
