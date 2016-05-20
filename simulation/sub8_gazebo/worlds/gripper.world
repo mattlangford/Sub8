@@ -1,14 +1,66 @@
-<?xml version="1.0"?>
-  <sdf version="1.4">
-    <world name="default">
-
-    <!-- A ground plane -->
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="default">
     <include>
       <uri>model://ground_plane</uri>
     </include>
-
-    <!-- A global light source -->
     <include>
+      <uri>model://sun</uri>
+    </include>
+    <model name="projector_model">
+      <pose>0 0 1 0.0 0.0 0</pose>
+      <link name="projector_link">
+        <pose>0 0 0 0.0 0.0 0.0</pose>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.1</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.1</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <script>Gazebo/Grey</script>
+          </material>
+        </visual>
+        <projector name="texture_projector">
+          <pose>0 0 0 0 0 0</pose>
+          <!-- set GAZEBO_RESOURCE_PATH to point to this (have it within media/materials/textures subdir  -->
+          <texture>Caustic.jpg</texture>
+          <!-- this works because it is in /usr/share/gazebo-1.9/media/materials/textures/ -->
+          <fov>0.959931088597</fov>
+          <near_clip>0.1</near_clip>
+          <far_clip>1000</far_clip>
+        </projector>
+      </link>
+      <static>true</static>
+      <plugin name="projector" filename="libgazebo_ros_projector.so" >
+        <projector>projector_link/texture_projector</projector>
+        <robotNamespace>robot</robotNamespace>
+
+        <textureTopicName>projector_controller/image</textureTopicName>
+        <projectorTopicName>projector_controller/projector</projectorTopicName>
+      </plugin>
+    </model>
+  </world>
+</sdf>
+<!--
+<?xml version="1.0"?>
+  <sdf version="1.4">
+    <world name="default">
+ -->
+    <!-- A ground plane -->
+<!--     <include>
+      <uri>model://ground_plane</uri>
+    </include>
+ -->
+    <!-- A global light source -->
+<!--     <include>
       <uri>model://sun</uri>
     </include>
 
@@ -18,3 +70,4 @@
 
     </world>
   </sdf>
+ -->

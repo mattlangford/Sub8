@@ -23,9 +23,9 @@
   <export>
     <!-- The secret sauce -->
     <gazebo_ros
-      gazebo_media_path="${prefix}"
+      gazebo_media_path="${prefix}/images"
       gazebo_plugin_path="${prefix}/lib"
       gazebo_model_path="${prefix}/models"
-      gazebo_resource_path="${prefix}:/" />
+      gazebo_resource_path="${prefix}/" />
   </export>
 </package>

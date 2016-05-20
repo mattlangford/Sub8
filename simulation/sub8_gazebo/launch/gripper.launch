@@ -1,6 +1,8 @@
 <launch>
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find sub8_gazebo)/worlds/gripper.world" />
-    <!-- more default parameters can be changed here -->
-  </include>
+    <arg name="gui" default="true" />
+
+    <!-- start gazebo server-->
+    <node name="gazebo" pkg="gazebo_ros" type="gzserver" respawn="false"
+    args="$(find sub8_gazebo)/worlds/gripper.world" output="screen"></node>
+    <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" if="$(arg gui)" />
 </launch>
