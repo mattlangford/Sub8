@@ -7,7 +7,7 @@ from gazebo_msgs.msg import ContactsState, ModelStates, ModelState
 from gazebo_msgs.srv import SetModelState, GetModelState, ApplyJointEffort, ApplyJointEffortRequest, \
     JointRequest, JointRequestRequest
 from geometry_msgs.msg import Pose, Twist
-from sub8_msgs.srv import SetValve
+from sub8_msgs.srv import SetValve, SetValveRequest
 
 from sub8_ros_tools import msg_helpers, geometry_helpers
 
@@ -119,8 +119,11 @@ class GripperController():
         self.apply_force = rospy.ServiceProxy('/gazebo/apply_joint_effort', ApplyJointEffort)
         self.clear_force = rospy.ServiceProxy('/gazebo/clear_joint_forces', JointRequest)
 
-        self.force_to_apply = 5  # Gazebo says these are Newton Meters
+        self.force_to_apply = .5  # Gazebo says these are Newton Meters
         self.joint_name = 'grip'
+
+        rospy.wait_for_service('/gazebo/apply_joint_effort')
+        self.set_gripper(SetValveRequest(opened=True))
 
     def set_gripper(self, srv):
         '''
@@ -130,13 +133,13 @@ class GripperController():
         self.clear_force(JointRequestRequest(joint_name=self.joint_name))
 
         effort_mod = 1
-        if not srv.opened:
+        if srv.opened:
             effort_mod = -1
 
         joint_effort = ApplyJointEffortRequest()
         joint_effort.joint_name = self.joint_name
         joint_effort.effort = self.force_to_apply * effort_mod
-        joint_effort.duration = rospy.Duration(-1)
+        joint_effort.duration = rospy.Duration(2 ** 31 - 1)
 
         self.apply_force(joint_effort)
 
