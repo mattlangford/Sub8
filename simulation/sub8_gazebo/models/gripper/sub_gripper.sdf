@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<sdf version="1.4">
+    <model name="sub_gripper">
+
+        <!-- Defining Sub gripper -->
+        <link name="fixed">
+            <pose>-.18 -.02 -.37 1.57 0 1.57</pose>
+            <collision name="collision">
+                <geometry>
+                  <mesh>
+                    <uri>file://gripper/fixed.dae</uri>
+                  </mesh>
+                </geometry>
+            </collision>
+            <visual name="visual">
+                <geometry>
+                  <mesh>
+                    <uri>file://gripper/fixed.dae</uri>
+                  </mesh>
+                </geometry>
+            </visual>
+        </link>
+
+        <link name="moveable">
+            <pose>-.18 -.02 -.37 1.57 0 1.57</pose>
+            <collision name="collision">
+                <geometry>
+                  <mesh>
+                    <uri>file://gripper/moveable.dae</uri>
+                  </mesh>
+                </geometry>
+            </collision>
+            <visual name="visual">
+                <geometry>
+                  <mesh>
+                    <uri>file://gripper/moveable.dae</uri>
+                  </mesh>
+                </geometry>
+            </visual>
+        </link>
+
+        <joint name="grip" type="prismatic">
+            <child>moveable</child>
+            <parent>fixed</parent>
+            <axis>
+                <limit>
+                    <lower>0</lower>
+                    <upper>.12</upper>
+                </limit>
+                <xyz>1 0 0</xyz>
+            </axis>
+        </joint>
+        <joint name="base_link_to_gripper" type="fixed">
+            <child>fixed</child>
+            <parent>sub8</parent>
+        </joint>
+    </model>
+</sdf>

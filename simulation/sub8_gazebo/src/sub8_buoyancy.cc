@@ -45,7 +45,6 @@ void BuoyancyPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf) {
   if (this->sdf->HasElement("drag_coefficient")) {
     this->dragCoeff = this->sdf->Get<double>("drag_coefficient");
   }
-
   // Get "center of volume" and "volume" that were inputted in SDF
   // SDF input is recommended for mesh or polylines collision shapes
   if (this->sdf->HasElement("link")) {
@@ -135,6 +134,11 @@ void BuoyancyPlugin::OnUpdate() {
   for (auto link : this->model->GetLinks()) {
     VolumeProperties volumeProperties = this->volPropsMap[link->GetId()];
     double volume = volumeProperties.volume;
+    if (volume <=  0) {
+      // This checks through all the links in the model whereas the thing that set the volume didn't.
+      // I tried fixing it but if someone else wants to go ahead.
+      continue;
+    }
     GZ_ASSERT(volume > 0, "Nonpositive volume found in volume properties!");
 
     // By Archimedes' principle,

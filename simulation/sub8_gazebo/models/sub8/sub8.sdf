@@ -4,7 +4,7 @@
     <link name="base_link">
       <velocity_decay>
         <linear>0.005</linear>
-        <angular>0.001</angular>
+        <angular>0.03</angular>
       </velocity_decay>
 
       <inertial>
@@ -19,6 +19,7 @@
         </inertia>
       </inertial>
 
+      <!-- Defining the sub itself (collision and visual) -->
       <collision name="box_collision">
         <pose>0 0 0 0 0 1.5707</pose>
         <geometry>
@@ -37,6 +38,7 @@
         </geometry>
       </visual>
 
+      <!-- Defining Sub Cameras -->
       <sensor name="left_camera" type="camera">
         <camera>
           <pose>0.2559 0.0445 0.01707 0 0 0</pose>
@@ -119,6 +121,7 @@
             <center>320 240</center>
           </distortion>
         </camera>
+
         <plugin name="down_camera_controller" filename="libgazebo_ros_camera.so">
           <alwaysOn>true</alwaysOn>
           <updateRate>15</updateRate>
@@ -176,6 +179,79 @@
       </sensor>
     </link>
 
+    <!-- Defining Sub gripper -->
+    <link name="fixed">
+        <pose>-.18 -.02 -.37 1.57 0 1.57</pose>
+        <inertial>
+          <mass>.0001</mass>
+        </inertial>
+        <collision name="collision">
+            <geometry>
+              <mesh>
+                <uri>file://gripper/fixed.dae</uri>
+              </mesh>
+            </geometry>
+        </collision>
+        <visual name="visual">
+            <geometry>
+              <mesh>
+                <uri>file://gripper/fixed.dae</uri>
+              </mesh>
+            </geometry>
+        </visual>
+    </link>
+
+    <link name="moveable">
+        <pose>-.18 -.02 -.37 1.57 0 1.57</pose>
+        <inertial>
+          <mass>0.00001</mass>
+          <inertia>
+            <ixx>.01</ixx>
+            <ixy>0.00001</ixy>
+            <ixz>0.00001</ixz>
+            <iyy>.01</iyy>
+            <iyz>0.00001</iyz>
+            <izz>.01</izz>
+          </inertia>
+        </inertial>
+        <self_collide>false</self_collide>
+        <collision name="collision">
+            <geometry>
+              <mesh>
+                <uri>file://gripper/moveable.dae</uri>
+              </mesh>
+            </geometry>
+        </collision>
+        <visual name="visual">
+            <geometry>
+              <mesh>
+                <uri>file://gripper/moveable.dae</uri>
+              </mesh>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="grip" type="prismatic">
+        <child>moveable</child>
+        <parent>fixed</parent>
+        <axis>
+            <limit>
+                <lower>0</lower>
+                <upper>.12</upper>
+            </limit>
+            <xyz>1 0 0</xyz>
+            <dynmaics>
+                <damping>.5</damping>
+            </dynmaics>
+        </axis>
+    </joint>
+
+    <joint name="base_link_to_gripper" type="fixed">
+        <child>fixed</child>
+        <parent>base_link</parent>
+    </joint>
+
+    <!-- Defining some plugins for the sub -->
     <plugin name="sub8_buoyancy" filename="libsub8_buoyancy.so">
       <fluid_density>1000</fluid_density>
       <drag_coefficient>1</drag_coefficient>
@@ -190,6 +266,5 @@
       <min_abs_thrust>2.2</min_abs_thrust>
       <link>base_link</link>
     </plugin>
-
   </model>
 </sdf>

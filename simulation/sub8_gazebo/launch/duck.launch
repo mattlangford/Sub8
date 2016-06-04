@@ -8,7 +8,7 @@
 
   <!-- start gazebo server-->
   <node name="gazebo" pkg="gazebo_ros" type="gzserver" respawn="false"
-    args="$(find sub8_gazebo)/worlds/a_whole_new.world" />
+    args="$(find sub8_gazebo)/worlds/a_whole_new.world" output='screen'/>
   <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" if="$(arg gui)" />
 
 
@@ -33,11 +33,11 @@
       -x 13.0 -y 24.0 -z -1.0 -model sub8"
     output="screen" />
 
-  <node unless="$(arg cameras)"
+<!--   <node unless="$(arg cameras)"
     name="spawn_sub" pkg="gazebo_ros" type="spawn_model"
     args="-file $(find sub8_gazebo)/models/sub8/sub8_no_cams.sdf -sdf
       -x 13.0 -y 24.0 -z -1.0 -model sub8"
-    output="screen" />
+    output="screen" /> -->
 
 
   <!-- Buoys -->
@@ -67,7 +67,7 @@
 
 
   <node pkg="sub8_gazebo" type="gazebo_controller.py" name="gazebo_interface" />
-  <node pkg="sub8_gazebo" type="torpedo.py" name="torpedo_controller" />
+  <node pkg="sub8_gazebo" type="actuator_sim.py" name="actuator_simulator" />
   <node pkg="sub8_gazebo" type="buoys.py" name="buoy_contact_reporter" />
   <node pkg="sub8_gazebo" type="turbulator.py" name="turbulator" output="screen" if="$(arg turbulence)" />
 
