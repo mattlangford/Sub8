@@ -9,6 +9,7 @@ import numpy as np
 
 
 SEARCH_DEPTH = .65
+SPEED = .1
 
 def catch_error(failure):
     print failure.printTraceback()
@@ -34,7 +35,7 @@ def run(sub):
         print "MARKER_MISSION - Marker not found."
         defer.returnValue(None)
 
-    yield sub.move.set_position(pose_to_numpy(resp.pose.pose)[0])
+    yield sub.move.set_position(pose_to_numpy(resp.pose.pose)[0]).go(speed=SPEED)
 
     # How many times should we attempt to reposition ourselves
     iterations = 3
@@ -54,7 +55,7 @@ def run(sub):
         est_target_rotations.append(yaw)
         avg_rotation = sum(est_target_rotations) / len(est_target_rotations)
 
-        yield sub.move.set_position(response[0]).yaw_left(yaw).zero_roll_and_pitch().go(speed=.1)
+        yield sub.move.set_position(response[0]).yaw_left(yaw).zero_roll_and_pitch().go(speed=SPEED)
 
         yield sub._node_handle.sleep(3.0)
 

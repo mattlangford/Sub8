@@ -69,6 +69,7 @@ class Job(common.Job):
             print "MARKER_TEST - TIMEOUT"
             defer.returnValue((False, "Timeout"))
         else:
+            print resp
             if resp is None:
                 print "MARKER_TEST - ERROR"
                 defer.returnValue((False, "Error"))

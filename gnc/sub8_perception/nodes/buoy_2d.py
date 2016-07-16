@@ -24,7 +24,7 @@ class BuoyFinder:
         self.transformer = tf.TransformListener()
         rospy.sleep(2.0)
 
-        self.search = False
+        self.search = True
         self.last_image = None
         self.last_draw_image = None
         self.last_image_time = None
@@ -36,13 +36,14 @@ class BuoyFinder:
         self.rviz = rviz.RvizVisualizer()
 
         rospack = rospkg.RosPack()
-        boost_path = os.path.join(
-            rospack.get_path('sub8_perception'),
-            'sub8_vision_tools',
-            'machine_learning',
-            'classifiers',
-            'red_gentle_20tree_9depth.dic'
-        )
+        # boost_path = os.path.join(
+        #     rospack.get_path('sub8_perception'),
+        #     'sub8_vision_tools',
+        #     'machine_learning',
+        #     'classifiers',
+        #     'red_gentle_20tree_9depth.dic'
+        # )
+        boost_path = "/home/uf-mil/bags/ML/classifiers/yellow/gentle_5tree_15depth.dic"
 
         self.boost = cv2.Boost()
         rospy.loginfo("Loading boost")
@@ -50,35 +51,35 @@ class BuoyFinder:
         rospy.loginfo("Boost loaded")
 
         self.observations = {
-            'red':deque(),
+            #'red':deque(),
             'yellow':deque(),
-            'green':deque()
+            #'green':deque()
         }
         self.pose_pairs = {
-            'red':deque(),
+            #'red':deque(),
             'yellow':deque(),
-            'green':deque()
+            #'green':deque()
         }
         self.buoys = {
-            'green': '/color/buoy/green',
-            'red': '/color/buoy/red',
+            #'green': '/color/buoy/green',
+            #'red': '/color/buoy/red',
             'yellow': '/color/buoy/yellow',
         }
         self.last_t = {
-            'green': None,
-            'red': None,
+            #'green': None,
+            #'red': None,
             'yellow': None
         }
 
         # For displaying each buoy in rviz
         self.draw_colors = {
-            'green': (0.0, 1.0, 0.0, 1.0),
-            'red': (1.0, 0.0, 0.0, 1.0),
+            #'green': (0.0, 1.0, 0.0, 1.0),
+            #'red': (1.0, 0.0, 0.0, 1.0),
             'yellow': (1.0, 1.0, 0.0, 1.0),
         }
         self.visual_id = {
-            'green': 0,
-            'red': 1,
+            #'green': 0,
+            #'red': 1,
             'yellow': 2,
         }
 
@@ -221,20 +222,20 @@ class BuoyFinder:
         best_ret = None
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        # Segmentation here (machine learning right now)
-        # some_observations = machine_learning.boost.observe(img)
-        # prediction2 = [int(x) for x in [self.boost.predict(obs) for obs in some_observations]]
-        # mask = np.reshape(prediction2, img[:, :, 2].shape).astype(np.uint8) * 255
+        #Segmentation here (machine learning right now)
+        some_observations = machine_learning.boost.observe(img)
+        prediction2 = [int(x) for x in [self.boost.predict(obs) for obs in some_observations]]
+        mask = np.reshape(prediction2, img[:, :, 2].shape).astype(np.uint8) * 255
 
-        low = np.array(rospy.get_param(self.buoys[buoy_type] + '/hsv_low')).astype(np.int32)
-        high = np.array(rospy.get_param(self.buoys[buoy_type] + '/hsv_high')).astype(np.int32)
-        mask = cv2.inRange(hsv, low, high)
+        # low = np.array(rospy.get_param(self.buoys[buoy_type] + '/hsv_low')).astype(np.int32)
+        # high = np.array(rospy.get_param(self.buoys[buoy_type] + '/hsv_high')).astype(np.int32)
+        # mask = cv2.inRange(hsv, low, high)
 
         rospy.sleep(.5)
 
         kernel = np.ones((13,13),np.uint8)
         mask = cv2.dilate(mask, kernel, iterations = 1)
-        mask = cv2.erode(mask, kernel, iterations = 1)
+        mask = cv2.erode(mask, kernel, iterations = 2)
 
         self.mask_pub.publish(np.dstack([mask] * 3))
 
@@ -264,10 +265,10 @@ class BuoyFinder:
             trans = np.array(t)
             R = sub8_ros_tools.geometry_helpers.quaternion_matrix(rot_q)
 
-            # self.rviz.draw_ray_3d(tuple_center, self.camera_model, self.draw_colors[buoy_type], frame='/stereo_front/right', _id=self._id + 100)
-            # self._id += 1
-            # if self._id >= self.max_observations * 3:
-            #     self._id = 0
+            self.rviz.draw_ray_3d(tuple_center, self.camera_model, self.draw_colors[buoy_type], frame='/stereo_front/right', _id=self._id + 100, timestamp=timestamp)
+            self._id += 1
+            if self._id >= self.max_observations * 3:
+                self._id = 0
 
             if (self.last_t[buoy_type] is None) or (np.linalg.norm(trans - self.last_t[buoy_type]) > 0.3):
                 self.last_t[buoy_type] = trans
