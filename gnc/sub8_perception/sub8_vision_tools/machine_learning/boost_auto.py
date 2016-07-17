@@ -9,6 +9,7 @@ from sklearn.preprocessing import scale
 from sub8_vision_tools.machine_learning import balanced_resample, desample_binary
 import time
 import tqdm
+from mask_compression import decode
 
 """
 TODO
@@ -79,7 +80,7 @@ def train_on_data(observation_list, label_list, split_factor=4):
 
     all_observations_split = np.vsplit(all_observations, split_factor)
     all_labels_split = np.vsplit(all_labels, split_factor)
-        
+
     print
     print "Building classifier..."
     print
@@ -109,10 +110,11 @@ def train_on_data(observation_list, label_list, split_factor=4):
         print "Done! Saving..."
         boost.save(f_name, 's')
         print
-        
 
-def load_images(path, images_to_use=8):
-    assert type(images_to_use) is int
+
+def load_images(path):
+    if path[-1] != '/': path += '/'
+
     images = os.listdir(path)
     observation_list = []
     label_list = []
@@ -138,12 +140,50 @@ def load_images(path, images_to_use=8):
 
                 images.remove(mask_name)
 
-            count += 1
-            if count > images_to_use:
-                if count == 10:
-                    # Reset when we get to 10
-                    count = 0
-                continue
+            if mask.max() > 1:
+                mask /= mask.max()
+
+            target_labels = np.reshape(mask, (-1, 1)).astype(np.int32)
+            observations = observe(image)
+
+            observation_list.append(observations)
+            label_list.append(target_labels)
+
+        except KeyboardInterrupt:
+            return None
+
+        except:
+            print "There was an issue with loading an image. Skipping it..."
+
+    return observation_list, label_list
+
+def load_images_compressed(path):
+    if path[-1] != '/': path += '/'
+
+    images = os.listdir(path)
+    observation_list = []
+    label_list = []
+
+    print "Images found in folder: {}".format(len(images) / 2 - 1)
+    count = 0
+    for i in tqdm.trange(len(images) / 2 - 1, desc="Loading images", unit=' images'):
+        try:
+            if '_mask.np' in images[i]:
+                # This is the mask image - there should be a matching non mask image.
+                image_name = images[images.index(images[i].replace('_mask.np', '.png'))]
+
+                image = cv2.imread(path + image_name)
+                mask = decode(np.load(path + images[i]))
+
+                images.remove(image_name)
+            else:
+                # This is the real image - there should be a matching mask image.
+                mask_name = images[images.index(images[i].replace('.png', '_mask.np'))]
+
+                image = cv2.imread(path + images[i])
+                mask = decode(np.load(path + mask_name))
+
+                images.remove(mask_name)
 
             if mask.max() > 1:
                 mask /= mask.max()
@@ -153,7 +193,7 @@ def load_images(path, images_to_use=8):
 
             observation_list.append(observations)
             label_list.append(target_labels)
-        
+
         except KeyboardInterrupt:
             return None
 
@@ -171,10 +211,15 @@ def main():
                         help="The folder to the images to train on")
     parser.add_argument('--output', type=str, help="Path to a file to output to (and overwrite)",
                         default='boost.cv2')
+    parser.add_argument('--compressed', type='store_true', help="The masks are compressed")
 
     args = parser.parse_args(sys.argv[1:])
 
-    observation_list, label_list = load_images(args.folder)
+    if args.compressed:
+        observation_list, label_list = load_images_compressed(args.folder)
+    else:
+        observation_list, label_list = load_images(args.folder)
+
     clf = train_on_data(observation_list, label_list)
 
 if __name__ == "__main__":
